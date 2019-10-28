@@ -47,7 +47,9 @@ class Filter:
         
     def filter_by_text(self, filter_str):
         filter_str = filter_str.lower()
-        idx = self.Author.str.lower().str.contains(filter_str)
+        filters = filter_str.split(",")
+        filters = "|".join(filters)
+        idx = self.Author.str.lower().str.contains(filters)
         return self.papers[idx]
     
     def filter_by_keyword(self, filter_str):
@@ -91,10 +93,12 @@ st.title('Hello~')
 # %%
 filter_input = st.text_input('Filter by author')
 st.write(filter.filter_by_text(filter_input))
-
+box = st.sidebar.selectbox('Select by box', keywords)
+st.write(filter.filter_by_text(box))
+st.sidebar.text(f"Keywords: {box}")
 # %%
 st.write('Hello')
-authorauthor
+
 # %%
 
 # %%
