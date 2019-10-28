@@ -1,9 +1,13 @@
 # %%
+DEBUG =True
+
+# %%
 import requests
 from bs4 import BeautifulSoup
 import re
 import pandas as pd
 import streamlit as st
+import numpy as np
 
 # %% [markdown]
 # A simple script to grabs all authors and papers name
@@ -16,6 +20,11 @@ soup = BeautifulSoup(res.content, "lxml")
 titles= list(map(lambda x:x.text, soup.select("div > p > b")))
 authors=list(map(lambda x:x.text, soup.select("div > p > i")))
 
+
+# %%
+if DEBUG:
+    titles = titles[:10]
+    authors = authors[:10]
 
 # %%
 papers_df = pd.DataFrame(list(zip(titles, authors)),columns=['Title', 'Author'])
@@ -32,9 +41,17 @@ papers_df = pd.DataFrame(list(zip(titles, authors)),columns=['Title', 'Author'])
 #         return f"Title: {self.title} \nAuthor(s): {self.author}\n"
 
 # %%
+if DEBUG:
+    corr = np.load('corr_debug.npy')
+else:
+    corr = np.load('corr.npy')
+
+
+# %%
 class Filter:
-    def __init__(self, papers):
+    def __init__(self, papers, corr):
         self.papers = papers_df
+        self.corr = corr
     
     def __call__(self, filter_str):
         print('call')
@@ -61,31 +78,26 @@ class Filter:
                     if filter in author:
                         result.append(paper)
                         continue
-
-        return result
-
+    def filter_by_similarity(self, idx):
+        n=5 # Top 10 similarity
+        idxs=self.corr[idx,].argsort()[::-1][1:n+1] # Ignore the paper itself
+        papers = self.papers.iloc[idxs]
+        papers['Similarity Score'] = self.corr[idx,idxs]
+        return papers
 
 
 # %%
 # papers = [Paper(t,a) for t,a in zip(titles, authors)]
 
 # %%
-filter =Filter(papers_df)
+filter = Filter(papers_df, corr)
 
 # %% [markdown]
 # # keyword
 
 # %%
 keywords_df = pd.read_csv('handcounted_inst.csv')
-
-# %%
 keywords = keywords_df.keywords
-
-# %%
-filter.filter_by_text(keywords[1])
-
-# %%
-keywords_df.keywords
 
 # %%
 st.title('Hello~')
@@ -100,5 +112,6 @@ st.sidebar.text(f"Keywords: {box}")
 st.write('Hello')
 
 # %%
+filter.filter_by_similarity(1)
 
 # %%

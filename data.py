@@ -128,9 +128,24 @@ if DEBUG:
     np.save('embeddings_debug.npy', message_embeddings)
 else:
     np.save('embeddings.npy', message_embeddings)
-    
+
 
 # %%
 titles[0]
+
+# %%
+import seaborn as sns
+
+# %%
+corr = np.inner(message_embeddings, message_embeddings)
+sns.set(font_scale=1.2)
+g = sns.heatmap(
+  corr)
+
+# %%
+if DEBUG:
+    np.save('corr_debug.npy', corr)
+else:
+    np.save('corr.npy', corr)
 
 # %%
