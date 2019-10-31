@@ -119,7 +119,7 @@ st.sidebar.text(lucky_button)
 # %%
 # Search query
 filter.search_query = st.sidebar.text_input(
-    "Search by title/author, use ',' to separate your crteria. For example, you can search 'jeff, dean' as two crteria",
+    "Search by title/author, use ',' to separate your crteria(s). For example, you can search 'jeff, dean'",
     filter.search_query,
 )
 st.subheader("Your search result")
