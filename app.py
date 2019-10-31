@@ -1,9 +1,7 @@
 # %%
-DEBUG =True
-
+DEBUG = True
+n = 5
 # %%
-import requests
-from bs4 import BeautifulSoup
 import re
 import pandas as pd
 import streamlit as st
@@ -13,83 +11,78 @@ import numpy as np
 # A simple script to grabs all authors and papers name
 
 # %%
-url = 'https://nips.cc/Conferences/2019/AcceptedPapersInitial'
-res = requests.get(url)
-soup = BeautifulSoup(res.content, "lxml")
-
-titles= list(map(lambda x:x.text, soup.select("div > p > b")))
-authors=list(map(lambda x:x.text, soup.select("div > p > i")))
-
-
-# %%
 if DEBUG:
-    titles = titles[:10]
-    authors = authors[:10]
+    corr=np.load("corr_debug.npy")
+    titles=np.load("titles_debug.npy")
+    authors=np.load("authors_debug.npy")
+    
+else:
+    corr=np.load("corr.npy")
+    titles=np.load("titles.npy")
+    authors=np.load("authors.npy")
+    
+posters = pd.read_csv('posters.csv')
 
 # %%
-papers_df = pd.DataFrame(list(zip(titles, authors)),columns=['Title', 'Author'])
+posters.head().T
+
+# %%
+papers_df = pd.DataFrame(list(zip(titles, authors)), columns=["Title", "Author"])
 # Output to a csv
 # papers_df.to_csv('papers.csv', index=False)
 
-# %%
-# class Paper:
-#     def __init__(self, title, author):
-#         self.title=title
-#         self.author=author
-    
-#     def __repr__(self):
-#         return f"Title: {self.title} \nAuthor(s): {self.author}\n"
 
-# %%
-if DEBUG:
-    corr = np.load('corr_debug.npy')
-else:
-    corr = np.load('corr.npy')
-
-
-# %%
 class Filter:
     def __init__(self, papers, corr):
         self.papers = papers_df
         self.corr = corr
-    
     def __call__(self, filter_str):
-        print('call')
+        print("call")
         result = self.filter_by_text(filter_str)
         return result
-    
+
     def __getattr__(self, name):
-        print('overload attr')
-        return getattr(self.papers,name)
-        
-    def filter_by_text(self, filter_str):
-        filter_str = filter_str.lower()
-        filters = filter_str.split(",")
-        filters = "|".join(filters)
-        idx = self.Author.str.lower().str.contains(filters)
-        return self.papers[idx]
-    
-    def filter_by_keyword(self, filter_str):
-        result = []
-        filters = filter_str.split(",")
-        for paper in self.papers:
-            for author in paper.author:
-                for filter in filters:
-                    if filter in author:
-                        result.append(paper)
-                        continue
+        return getattr(self.papers, name)
+
+    def _get_filters(self, filter_str):
+        filters = filter_str.lower().split(",")
+        return "|".join*(filters)
+
+    def filter_by_text_input(self, filter_str):
+        filters = self._get_filters(filter_str)
+        booleans_author = self.Author.str.lower().str.contains(filters)
+        booleans_title = self.Title.str.lower().str.contains(filters)
+        return (booleans_author) & (booleans_title)
+
+    def get_result_by_idx(self, idxs):
+        return self.papers[idxs]
+
+    def feel_luck(self):
+        n = len(self.papers)
+        idxs = np.random.randint(low=0, high=n-1, size=n)
+        return self.get_result_by_idx(idxs)
+
     def filter_by_similarity(self, idx):
-        n=5 # Top 10 similarity
-        idxs=self.corr[idx,].argsort()[::-1][1:n+1] # Ignore the paper itself
-        papers = self.papers.iloc[idxs]
-        papers['Similarity Score'] = self.corr[idx,idxs]
-        return papers
+        idxs = self.corr[idx, :].argsort()[::-1][1:n+1]  # Top N ignore the paper itself
+        paper = self.papers.loc[idxs]
+        paper["Similarity Score"] = corr[idxs]
+        return paper
 
 
 # %%
 # papers = [Paper(t,a) for t,a in zip(titles, authors)]
+width = 10
+st.header("NeurIPS 2019")
+st.subheader("Dec 8 - Dec 14")
+st.text(
+    "This year, the NeurIPS has an record-breaking number of accepted paper, __1429__ accepted papers!! \nIt is impossible to scan all the papers, instead of going through the list, I make a little search engine to search paper effectively"
+)
 
 # %%
+pe
+
+# %%
+papers_df = pd.DataFrame(list(zip(titles, authors)), columns=["Title", "Author"])
 filter = Filter(papers_df, corr)
 
 # %% [markdown]
@@ -97,21 +90,34 @@ filter = Filter(papers_df, corr)
 
 # %%
 keywords_df = pd.read_csv('handcounted_inst.csv')
-keywords = keywords_df.keywords
+keywords = keywords_df['keywords']
 
 # %%
 st.title('Hello~')
+# %%
+st.dataframe(filter.filter_by_text(keywords[1]), width=10)
 
 # %%
-filter_input = st.text_input('Filter by author')
-st.write(filter.filter_by_text(filter_input))
-box = st.sidebar.selectbox('Select by box', keywords)
-st.write(filter.filter_by_text(box))
+keywords_df.keywords
+# %%
+filter_input = st.sidebar.text_input("Filter by author")
+st.write("Filter by search query", filter.filter_by_text(filter_input))
+box = st.sidebar.selectbox("Select by box", keywords)
+st.write("Filter by keywords", filter.filter_by_text(box))
 st.sidebar.text(f"Keywords: {box}")
 # %%
-st.write('Hello')
+st.write("Hello")
+
+## Sidebar for Select Top N Results
+top_n = [5, 10, 15, 20]
+n = st.sidebar.selectbox("Show Top N Result", top_n)
+# %%
+filter.papers.shape
 
 # %%
-filter.filter_by_similarity(1)
-
+st.write(f"Top {n} similar result to", filter.filter_by_similarity(1))
+# %%
+if DEBUG:
+    st.write("top_n", n)
+    st.write("search_query", search_query)
 # %%
