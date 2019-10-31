@@ -9,10 +9,12 @@ import pandas as pd
 import streamlit as st
 
 # %% [markdown]
-# A simple script to grabs all authors and papers name
+# A simple script to grabs all authors and posters
+#  name
 
 # %%
-url = "https://nips.cc/Conferences/2019/AcceptedPapersInitial"
+url = "https://nips.cc/Conferences/2019/Acceptedposters
+Initial"
 url="https://nips.cc/Conferences/2019/Schedule?type=Poster"
 res = requests.get(url)
 soup = BeautifulSoup(res.content, "lxml")
@@ -90,8 +92,8 @@ posters.head().T
 
 # %%
 class Filter:
-    def __init__(self, papers):
-        self.papers = papers_df
+    def __init__(self, posters):
+        self.posters = posters
 
     def __call__(self, filter_str):
         print("call")
@@ -100,30 +102,32 @@ class Filter:
 
     def __getattr__(self, name):
         print("overload attr")
-        return getattr(self.papers, name)
+        return getattr(self.posters
+        , name)
 
     def filter_by_text(self, filter_str):
         filter_str = filter_str.lower()
         filters = filter_str.split(",")
         filters = "|".join(filters)
         idx = self.Author.str.lower().str.contains(filters)
-        return self.papers[idx]
+        return self.posters
+        [idx]
 
     def filter_by_keyword(self, filter_str):
         result = []
         filters = filter_str.split(",")
-        for paper in self.papers:
-            for author in paper.author:
+        for poster in self.posters:
+            for author in poster.author:
                 for filter in filters:
                     if filter in author:
-                        result.append(paper)
+                        result.append(poster)
                         continue
-
         return result
 
 
 # %%
-# papers = [Paper(t,a) for t,a in zip(titles, authors)]
+# posters
+#  = [poster(t,a) for t,a in zip(titles, authors)]
 
 # %%
 filter = Filter(posters)
