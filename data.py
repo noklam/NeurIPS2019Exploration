@@ -13,8 +13,7 @@ import streamlit as st
 #  name
 
 # %%
-url = "https://nips.cc/Conferences/2019/Acceptedposters
-Initial"
+# url = "https://nips.cc/Conferences/2019/AcceptedpostersInitial" # The site is changed :(
 url="https://nips.cc/Conferences/2019/Schedule?type=Poster"
 res = requests.get(url)
 soup = BeautifulSoup(res.content, "lxml")
@@ -27,7 +26,7 @@ soup = BeautifulSoup(res.content, "lxml")
 
 # %%
 posters_soup=soup.find_all("div", class_="maincard narrower Poster")
-print(f"Found {len(c)} posters!!!")
+print(f"Found {len(posters_soup)} posters!!!")
 if DEBUG:
     posters_soup=posters_soup[:5]
 
@@ -36,6 +35,15 @@ example = posters_soup[0]
 
 
 # %%
+
+def get_titles(poster):  
+        return poster.find(class_="maincardBody").text
+    
+def get_authors(poster):
+    return poster.find(class_="maincardFooter").text
+
+    
+
 def get_event_type(poster):  
         return poster.find_all(class_="maincardHeader")[0].text
 
@@ -46,19 +54,18 @@ def get_details(poster):
 def get_category(poster):  
         return poster.find_all(class_="maincardHeader")[2].text
     
-def get_authors(poster):
-    return poster.find(class_="maincardFooter").text
-
-    
-def get_titles(poster):  
-        return poster.find(class_="maincardBody").text
 
 
 # %%
 posters_soup[0]
 
 # %%
-fn_list = [get_event_type, get_details,get_titles,get_category, get_authors]
+fn_list = [get_titles,
+           get_authors,
+           get_category,
+           get_event_type,
+           get_details,
+            ]
 
 for fn in fn_list:
     print(fn.__name__,": ", fn(example))
@@ -74,8 +81,13 @@ for poster in posters_soup:
     posters_list.append(columns)
 
 # %%
-cols = [
-    "event_type","time","title","category","author"
+cols = ["title",
+   
+        "author",
+        "category",
+   
+            "event_type",
+              "time",
 ]
 
 # %%
@@ -85,52 +97,24 @@ posters['location'] = posters['time'].copy()
 # %%
 posters.head().T
 
+# %% [markdown]
+# # Clean up the data a little bit 
+
+# %% [markdown]
+# I know this is not the most elegant way to clean up the data... but that's not the point here. :)
+# Most data are fine, but we can clean up the time column and category a little bit.
 
 # %%
-# Output to a csv
+posters['time'] = posters['time'].str.split("@").str[0]
+posters['location'] = posters['location'].str.split("@").str[1]
+posters['category'] = posters['category'].str.split("\n").str[-2]
+
+# %%
+posters
+
+# %%
+# # Output to a csv
 # posters.to_csv('posters.csv', index=False)
-
-# %%
-class Filter:
-    def __init__(self, posters):
-        self.posters = posters
-
-    def __call__(self, filter_str):
-        print("call")
-        result = self.filter_by_text(filter_str)
-        return result
-
-    def __getattr__(self, name):
-        print("overload attr")
-        return getattr(self.posters
-        , name)
-
-    def filter_by_text(self, filter_str):
-        filter_str = filter_str.lower()
-        filters = filter_str.split(",")
-        filters = "|".join(filters)
-        idx = self.Author.str.lower().str.contains(filters)
-        return self.posters
-        [idx]
-
-    def filter_by_keyword(self, filter_str):
-        result = []
-        filters = filter_str.split(",")
-        for poster in self.posters:
-            for author in poster.author:
-                for filter in filters:
-                    if filter in author:
-                        result.append(poster)
-                        continue
-        return result
-
-
-# %%
-# posters
-#  = [poster(t,a) for t,a in zip(titles, authors)]
-
-# %%
-filter = Filter(posters)
 
 # %% [markdown]
 # # Embeddings with Google Universal Sentence Encoder
@@ -186,15 +170,7 @@ else:
 corr = np.inner(message_embeddings, message_embeddings) # calculate the correlation with dot product
 
 # %%
-
 if DEBUG:
     np.save("corr_debug.npy", corr)
-    np.save("titles_debug.npy", titles)
-    np.save("authors_debug.npy", authors)
-    
 else:
     np.save("corr.npy", corr)
-    np.save("titles.npy", titles)
-    np.save("authors.npy", authors)
-
-# %%
