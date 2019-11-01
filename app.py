@@ -98,7 +98,7 @@ st.markdown("> 1428, the number of accepted papers of NeurIPS in 2019.")
 
 st.write(" ")
 st.markdown(
-    "It is impossible to scan all the papers, instead of going through the list, you can use this app to help you to find the paper you are interested."
+    "With only 1 month from NeurIPS, it is impossible to scan all the papers. Instead of going through the list, you can use this app to help you to find the paper you are interested."
 )
 st.markdown(
     "You can use the sidebar to search for interested paper by title or author, and get a list of top n similar papers. If you have no idea to start, just click the '__Feel Lucky__' button on the side, it will pick a paper for you and show the most similar results to you."
@@ -178,8 +178,8 @@ button_category = st.sidebar.checkbox("category")
 button_sub_category = st.sidebar.checkbox("sub_category")
 button_link = st.sidebar.checkbox("link")
 
-# Reset button
-# button_reset = st.sidebar.button("Reset", filter.reset())
+# Lucky button
+button_lucky = st.sidebar.button("Lucky!")
 
 
 
@@ -201,12 +201,19 @@ button_link = st.sidebar.checkbox("link")
 
 # %%
 def run():
-    st.subheader("Your search result")
-    filter.get_filter_result()
+    if button_lucky:
+        st.subheader("Your paper lottery result")
+        filter.feel_lucky()
+    else:
+        st.subheader("Your search result")
+        filter.get_filter_result()
 
-    def show_search_result(filter):
+    def show_search_result(filter, button_lucky):
         try:
-            result = filter.search_result.copy()
+            if button_lucky:
+                result = filter.search_result
+            else:
+                result = filter.search_result.copy()
             if not button_location:
                 del result['location']
             if not button_time:
@@ -221,8 +228,8 @@ def run():
         except:
             search_result = pd.DataFrame()
             st.table("No search result :(")
-
-    show_search_result(filter)
+    
+    show_search_result(filter, button_lucky)
     # %%tfilter
     st.subheader(f"Your top search result is:")
     # search_result = filter.get_filter_result()
@@ -272,4 +279,6 @@ if DEBUG:
     st.sidebar.text(f"time {filter.time}")
     st.sidebar.text(f"button_location {button_location}")
 
+
+st.markdown("If you found bugs or have any suggestion, please let me know.")
 st.markdown(f"GitHub: https://github.com/noklam/NeurIPS2019Exploration")

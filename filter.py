@@ -97,6 +97,9 @@ class Filter:
             self._sub_category=""
         else:
             self._sub_category=x.lower()
-
-
-    
+    def feel_lucky(self):
+        self.search_query=""
+        self.get_filter_result()
+        self.search_result=self.search_result.sample(n=1)
+        print('Feeling Lucky!!')
+        return "test"
