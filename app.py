@@ -217,7 +217,7 @@ def run():
                 del result['sub_category']
             if not button_link:
                 del result['link']
-            st.write(result)
+            st.table(result)
         except:
             search_result = pd.DataFrame()
             st.table("No search result :(")
