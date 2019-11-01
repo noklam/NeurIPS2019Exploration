@@ -139,16 +139,22 @@ time = np.insert(time, 0, "All")
 filter.time = st.sidebar.selectbox("Filter by time", time)
 
 # Sidebar filter for venue
-location = filter.posters["location"].unique()
-location.sort()
-location = np.insert(location, 0, "All")
-filter.location = st.sidebar.selectbox("Filter by venue", location)
+# location = filter.posters["location"].unique()
+# location.sort()
+# location = np.insert(location, 0, "All")
+# filter.location = st.sidebar.selectbox("Filter by venue", location)
 
 # Sidebar filter for category
 category = filter.posters["category"].unique()
 category.sort()
 category = np.insert(category, 0, "All")
 filter.category = st.sidebar.selectbox("Filter by category", category)
+
+# Sidebar filter for category
+sub_category = filter.posters[filter.posters['category'].str.contains(filter.category)]["sub_category"].unique()
+sub_category.sort()
+sub_category = np.insert(sub_category, 0, "All")
+filter.sub_category = st.sidebar.selectbox("Filter by sub-category", sub_category)
 
 ## Sidebar for Select Top N Results
 top_n = [5, 10, 15, 20]
@@ -165,9 +171,12 @@ filter.search_query = st.sidebar.text_input(
 
 # Show extra columns
 st.sidebar.text("Show Extra Columns:")
-button_location = st.sidebar.checkbox("location")
+# button_location = st.sidebar.checkbox("location")
+button_location = False
 button_time = st.sidebar.checkbox("time")
 button_category = st.sidebar.checkbox("category")
+button_sub_category = st.sidebar.checkbox("sub_category")
+button_link = st.sidebar.checkbox("link")
 
 # Reset button
 # button_reset = st.sidebar.button("Reset", filter.reset())
@@ -192,7 +201,6 @@ button_category = st.sidebar.checkbox("category")
 
 # %%
 def run():
-
     st.subheader("Your search result")
     filter.get_filter_result()
 
@@ -205,13 +213,17 @@ def run():
                 del result['time']
             if not button_category:
                 del result['category']
-            st.table(result)
+            if not button_sub_category:
+                del result['sub_category']
+            if not button_link:
+                del result['link']
+            st.write(result)
         except:
             search_result = pd.DataFrame()
-            st.write("No search result :(")
+            st.table("No search result :(")
 
     show_search_result(filter)
-    # %%
+    # %%tfilter
     st.subheader(f"Your top search result is:")
     # search_result = filter.get_filter_result()
 
@@ -238,6 +250,10 @@ def run():
             del result['time']
         if not button_category:
             del result['category']
+        if not button_sub_category:
+            del result['sub_category']
+        if not button_link:
+            del result['link']
         st.table(result)
     else:
         st.markdown(

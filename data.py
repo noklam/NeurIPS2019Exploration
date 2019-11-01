@@ -1,5 +1,5 @@
 # %%
-DEBUG = False
+DEBUG = True
 
 # %%
 import requests
@@ -15,6 +15,7 @@ import streamlit as st
 # %%
 # url = "https://nips.cc/Conferences/2019/AcceptedpostersInitial" # The site is changed :(
 url = "https://nips.cc/Conferences/2019/Schedule?type=Poster"
+base_url = "https://nips.cc"
 res = requests.get(url)
 soup = BeautifulSoup(res.content, "lxml")
 
@@ -35,8 +36,6 @@ example = posters_soup[0]
 
 
 # %%
-
-
 def get_titles(poster):
     return poster.find(class_="maincardBody").text
 
@@ -56,12 +55,12 @@ def get_details(poster):
 def get_category(poster):
     return poster.find_all(class_="maincardHeader")[2].text
 
+def get_href(poster):
+    return base_url + poster.find("a", href=True).attrs.get('href', None)
+
 
 # %%
-posters_soup[0]
-
-# %%
-fn_list = [get_titles, get_authors, get_category, get_event_type, get_details]
+fn_list = [get_titles, get_authors, get_category, get_event_type, get_details, get_href]
 
 for fn in fn_list:
     print(fn.__name__, ": ", fn(example))
@@ -77,14 +76,11 @@ for poster in posters_soup:
     posters_list.append(columns)
 
 # %%
-cols = ["title", "author", "category", "event_type", "time"]
+cols = ["title", "author", "category", "event_type", "time", "link"]
 
 # %%
 posters = pd.DataFrame(posters_list, columns=cols)
 posters["location"] = posters["time"].copy()
-
-# %%
-posters.head().T
 
 # %% [markdown]
 # # Clean up the data a little bit
@@ -94,12 +90,13 @@ posters.head().T
 # Most data are fine, but we can clean up the time column and category a little bit.
 
 # %%
-posters["time"] = posters["time"].str.split("@").str[0]
+posters["time"] = posters["time"].str.split("@").str[0].str.strip()
 posters["location"] = posters["location"].str.split("@").str[1]
+posters["location"] = posters["location"].str.split("#").str[0].str.strip()
 posters["category"] = posters["category"].str.split("\n").str[-2]
+posters["sub_category"] = posters["category"].copy().str.split("--").str[-1].str.strip()
+posters["category"] = posters["category"].str.split("--").str[-2].str.strip()
 
-# %%
-posters
 
 # %%
 # # Output to a csv
@@ -107,6 +104,8 @@ if DEBUG:
     posters.to_csv("posters_debug.csv", index=False)
 else:
     posters.to_csv("posters.csv", index=False)
+    
+
 # %% [markdown]
 # # Embeddings with Google Universal Sentence Encoder
 
