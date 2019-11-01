@@ -53,11 +53,12 @@ class Filter:
         if search_result.empty:
             return
         query_idx = search_result.index[0]
-        poster_idxs = self.corr[query_idx, :].argsort()[::-1][ : self.n + 1]  # Top N exclude the paper itself
-        poster = self.posters.loc[poster_idxs]
-        result = pd.DataFrame()
+        poster_idxs = self.corr[query_idx, :].argsort()[::-1][1: self.n + 1]  # Top N exclude the paper itself
+        result = self.posters.iloc[poster_idxs]
         result["Similarity Score"] = self.corr[query_idx, poster_idxs]
-        result = pd.concat([result, poster], axis=1)
+        cols = result.columns.values.tolist()
+        cols.insert(0, cols.pop())
+        result = result.reindex(columns= cols)
         return result
 
     @property

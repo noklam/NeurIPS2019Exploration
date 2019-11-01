@@ -104,7 +104,7 @@ if DEBUG:
     posters.to_csv("posters_debug.csv", index=False)
 else:
     posters.to_csv("posters.csv", index=False)
-    
+
 
 # %% [markdown]
 # # Embeddings with Google Universal Sentence Encoder
@@ -164,3 +164,29 @@ if DEBUG:
     np.save("corr_debug.npy", corr)
 else:
     np.save("corr.npy", corr)
+
+# %% [markdown]
+# # Test
+
+# %%
+if DEBUG:
+    corr = np.load("corr_debug.npy")
+
+
+# %%
+query_idx = 4
+n=5
+
+# %%
+# query_idx = search_result.index[0]
+poster_idxs = corr[query_idx, :].argsort()[::-1][ : n + 1]  # Top N exclude the paper itself
+result = posters.iloc[poster_idxs]
+result["Similarity Score"] = corr[query_idx, poster_idxs]
+cols = result.columns.values.tolist()
+cols.insert(0, cols.pop())
+result = result.reindex(columns= cols)
+
+# %%
+result
+
+# %%
