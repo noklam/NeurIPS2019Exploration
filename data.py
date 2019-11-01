@@ -1,5 +1,5 @@
 # %%
-DEBUG = True
+DEBUG = False
 
 # %%
 import requests
@@ -14,7 +14,7 @@ import streamlit as st
 
 # %%
 # url = "https://nips.cc/Conferences/2019/AcceptedpostersInitial" # The site is changed :(
-url="https://nips.cc/Conferences/2019/Schedule?type=Poster"
+url = "https://nips.cc/Conferences/2019/Schedule?type=Poster"
 res = requests.get(url)
 soup = BeautifulSoup(res.content, "lxml")
 
@@ -25,10 +25,10 @@ soup = BeautifulSoup(res.content, "lxml")
 #   f.write(res.content)
 
 # %%
-posters_soup=soup.find_all("div", class_="maincard narrower Poster")
+posters_soup = soup.find_all("div", class_="maincard narrower Poster")
 print(f"Found {len(posters_soup)} posters!!!")
 if DEBUG:
-    posters_soup=posters_soup[:5]
+    posters_soup = posters_soup[:5]
 
 # %%
 example = posters_soup[0]
@@ -36,39 +36,35 @@ example = posters_soup[0]
 
 # %%
 
-def get_titles(poster):  
-        return poster.find(class_="maincardBody").text
-    
+
+def get_titles(poster):
+    return poster.find(class_="maincardBody").text
+
+
 def get_authors(poster):
     return poster.find(class_="maincardFooter").text
 
-    
 
-def get_event_type(poster):  
-        return poster.find_all(class_="maincardHeader")[0].text
+def get_event_type(poster):
+    return poster.find_all(class_="maincardHeader")[0].text
 
-def get_details(poster):  
-        return poster.find_all(class_="maincardHeader")[1].text
 
-    
-def get_category(poster):  
-        return poster.find_all(class_="maincardHeader")[2].text
-    
+def get_details(poster):
+    return poster.find_all(class_="maincardHeader")[1].text
+
+
+def get_category(poster):
+    return poster.find_all(class_="maincardHeader")[2].text
 
 
 # %%
 posters_soup[0]
 
 # %%
-fn_list = [get_titles,
-           get_authors,
-           get_category,
-           get_event_type,
-           get_details,
-            ]
+fn_list = [get_titles, get_authors, get_category, get_event_type, get_details]
 
 for fn in fn_list:
-    print(fn.__name__,": ", fn(example))
+    print(fn.__name__, ": ", fn(example))
 
 # %%
 posters_list = []
@@ -81,41 +77,36 @@ for poster in posters_soup:
     posters_list.append(columns)
 
 # %%
-cols = ["title",
-   
-        "author",
-        "category",
-   
-            "event_type",
-              "time",
-]
+cols = ["title", "author", "category", "event_type", "time"]
 
 # %%
-posters = pd.DataFrame(posters_list,columns=cols)
-posters['location'] = posters['time'].copy()
+posters = pd.DataFrame(posters_list, columns=cols)
+posters["location"] = posters["time"].copy()
 
 # %%
 posters.head().T
 
 # %% [markdown]
-# # Clean up the data a little bit 
+# # Clean up the data a little bit
 
 # %% [markdown]
 # I know this is not the most elegant way to clean up the data... but that's not the point here. :)
 # Most data are fine, but we can clean up the time column and category a little bit.
 
 # %%
-posters['time'] = posters['time'].str.split("@").str[0]
-posters['location'] = posters['location'].str.split("@").str[1]
-posters['category'] = posters['category'].str.split("\n").str[-2]
+posters["time"] = posters["time"].str.split("@").str[0]
+posters["location"] = posters["location"].str.split("@").str[1]
+posters["category"] = posters["category"].str.split("\n").str[-2]
 
 # %%
 posters
 
 # %%
 # # Output to a csv
-# posters.to_csv('posters.csv', index=False)
-
+if DEBUG:
+    posters.to_csv("posters_debug.csv", index=False)
+else:
+    posters.to_csv("posters.csv", index=False)
 # %% [markdown]
 # # Embeddings with Google Universal Sentence Encoder
 
@@ -129,7 +120,7 @@ import pandas as pd
 import re
 
 # Compute a representation for each message, showing various lengths supported.
-messages = posters['title'].tolist()
+messages = posters["title"].tolist()
 
 
 # %%
@@ -138,7 +129,6 @@ module_url = (
 )  # @param ["https://tfhub.dev/google/universal-sentence-encoder/2", "https://tfhub.dev/google/universal-sentence-encoder-large/3"]
 # Import the Universal Sentence Encoder's TF Hub module
 embed = hub.Module(module_url)
-
 
 
 # Reduce logging output.
@@ -153,8 +143,7 @@ with tf.Session() as session:
 for i, message_embedding in enumerate(np.array(message_embeddings).tolist()):
     print("Message: {}".format(messages[i]))
     print("Embedding size: {}".format(len(message_embedding)))
-    message_embedding_snippet = ", ".join(
-        (str(x) for x in message_embedding[:3]))
+    message_embedding_snippet = ", ".join((str(x) for x in message_embedding[:3]))
     print("Embedding: [{}, ...]\n".format(message_embedding_snippet))
     break
 
@@ -167,7 +156,9 @@ else:
 
 
 # %%
-corr = np.inner(message_embeddings, message_embeddings) # calculate the correlation with dot product
+corr = np.inner(
+    message_embeddings, message_embeddings
+)  # calculate the correlation with dot product
 
 # %%
 if DEBUG:
