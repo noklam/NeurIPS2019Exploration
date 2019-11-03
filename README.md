@@ -1,6 +1,8 @@
 # NeuRIPS2019 App
 Don't forget to leave a star⭐, if you enjoy this project.
 
+https://neurips2019exploration.herokuapp.com/
+![Screenshot of the app](imgs/2019-11-03-08-06-44.png)
 Medium:
 https://medium.com/@nokkk 
 https://neurips2019exploration.ml
