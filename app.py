@@ -3,7 +3,8 @@
 # %autoreload 2
 
 # %%
-DEBUG = True
+global DEBUG
+DEBUG = False
 # %%
 import re
 import pandas as pd
@@ -24,74 +25,30 @@ else:
 
 @st.cache
 def load_data():
-    posters = pd.read_csv("posters.csv")
+    if DEBUG:
+        posters = pd.read_csv("posters_debug.csv")
+    else:
+        posters = pd.read_csv("posters.csv")
     return posters
 
-
-# class Filter:
-#     def __init__(self, posters, corr):
-#         self.posters = posters
-#         self.corr = corr
-#         self.search_query = ""
-#         self.date = None
-#         self.similar = None
-#         self.time = ""
-#         self.location = ""
-#         self.category = ""
-#         self.n = 5
-
-#     def __call__(self, filter_str):
-#         print("call")
-#         result = self.filter_by_text(filter_str)
-#         return result
-
-#     def _get_filters(self, filter_str):
-#         filters = filter_str.lower().split(",")
-#         print("".join([f"(?={filter})" for filter in filters]))
-#         return "".join([f"(?={filter})" for filter in filters])
-
-#     def filter_by_text_input(self, filter_str):
-#         filters = self._get_filters(filter_str)
-#         booleans_author = self.posters.author.str.lower().str.contains(filters)
-#         # booleans_author = [self.posters.author.str.lower().str.contains(filter) ]
-#         # booleans_author = self.posters.author.str.lower().str.contains(filters)
-#         booleans_title = self.posters.title.str.lower().str.contains(filters)
-#         booleans_category = self.posters.category.str.lower().str.contains(filters)
-#         return (booleans_author) | (booleans_title) | (booleans_category)
-
-#     def get_filter_result(self, filter_str):
-#         booleans_query = self.filter_by_text_input(filter_str)
-#         booleans_time = self.posters.time.str.lower().str.contains(self.time)
-#         booleans_location = self.posters.location.str.lower().str.contains(self.location)
-#         booleans_category = self.posters.category.str.lower().str.contains(self.category)
-#         booleans_result = (booleans_query) & (booleans_time) & (booleans_location) & (booleans_category)
-#         return self.get_result_by_idx(booleans_result)
-
-#     def pick_one(self):
-#         n = len(self.posters)
-#         idx = np.random.choice(n)
-#         self.idx = idx
-#         return self.get_result_by_idx(idx)["title"]
-
-#     def filter_by_similarity(self, query_idx):
-#         # query_idx = (self.posters[self.posters.title==query]).index
-#         poster_idxs = self.corr[query_idx, :].argsort()[::-1][1 : n + 1]  # Top N exclude the paper itself
-#         poster = self.posters.loc[poster_idxs]
-#         result = pd.DataFrame()
-#         result["Similarity Score"] = corr[query_idx, poster_idxs]
-#         result = pd.concat([result, poster], axis=1)
-#         return result
-    
-#     def get_result_by_idx(self, idxs):
-#         # Filter Top n results
-#         return self.posters.loc[idxs].iloc[: self.n]
-
-
 # %%
-# papers = [Paper(t,a) for t,a in zip(titles, authors)]
+# GA Traffic
+ga = """<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-83544344-6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-83544344-6');
+</script>
+"""
+st.markdown(ga, unsafe_allow_html=True)
+
+
 width = 10
 st.image("imgs/neurips.png", use_column_width=True)
-st.header("NeurIPS 2019")
+st.title("NeurIPS 2019 Explorer")
 st.text("Dec 8 - Dec 14")
 st.header("Introduction")
 st.markdown("> 1428, the number of accepted papers of NeurIPS in 2019.")
@@ -103,14 +60,13 @@ st.markdown(
 st.markdown(
     "You can use the sidebar to search for interested paper by title or author, and get a list of top n similar papers. If you have no idea to start, just click the '__Feel Lucky__' button on the side, it will pick a paper for you and show the most similar results to you."
 )
-st.markdown("_Note: currently streamlit (this app is built with streamlit) do not have custom config for column width, so it will be a little bit weird when the text is long. I will fix this once they have implemented the feature._")
 
 # %%
 # filter = Filter(load_data(), corr)
-posters = pd.read_csv("posters.csv")
+# posters = pd.read_csv("posters.csv")
 # posters['author'] = posters['author'].str.replace("·", "")
-del posters['event_type']
-filter = Filter(posters, corr)
+# del posters['event_type']
+filter = Filter(load_data(), corr)
 
 # Lucky Button
 # %%
@@ -130,6 +86,9 @@ filter = Filter(posters, corr)
 
 # %% [markdown]
 # # Sidebar
+# Info
+st.sidebar.header("About App")
+st.sidebar.info("A Simple search engine for NeurIPS 2019")
 
 # %%
 # Sidebar filter for time
@@ -161,9 +120,15 @@ top_n = [5, 10, 15, 20]
 n = st.sidebar.selectbox("Show Top N Result", top_n)
 filter.n = n
 
+
+
+
+
 # %% [markdown]
 # # Sidebar
 # %%
+st.sidebar.header("Search by text")
+filter.searh_qeury2 = st.sidebar.multi
 filter.search_query = st.sidebar.text_input(
     "Search by title/author, use ',' to separate your crteria(s). For example, you can search 'jeff, dean'",
     filter.search_query
@@ -180,6 +145,15 @@ button_link = st.sidebar.checkbox("link")
 
 # Lucky button
 button_lucky = st.sidebar.button("Lucky!")
+
+# Warning
+st.sidebar.warning("_Note: Currently the rendering of dataframe is a bit weird as no config can be set with streamlit. Once they have introduce the configuration I will fix the issue_")
+
+
+# Info
+st.sidebar.text("Built with Streamlit")
+st.sidebar.text("Maintained by @noklam")
+st.sidebar.text("I use GA to track the web traffic of the site")
 
 
 
@@ -201,6 +175,8 @@ button_lucky = st.sidebar.button("Lucky!")
 
 # %%
 def run():
+
+
     if button_lucky:
         st.subheader("Your paper lottery result")
         filter.feel_lucky()
@@ -267,6 +243,7 @@ def run():
             f"No matched records, try modify your search query _ {filter.search_query}_or clean up the filter"
         )
 
+
 run()
 
 # %%
@@ -278,6 +255,7 @@ if DEBUG:
     st.sidebar.text(f"category {filter.category}")
     st.sidebar.text(f"time {filter.time}")
     st.sidebar.text(f"button_location {button_location}")
+    st.sidebar.text(f"{filter.category, filter.posters.shape, filter.corr.shape}")
 
 
 st.markdown("If you found bugs or have any suggestion, please let me know.")

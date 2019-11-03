@@ -1,11 +1,11 @@
 # NeuRIPS2019 App
-Don't forget to star the project if you enjoy it.
+Don't forget to leave a star⭐, if you enjoy this project.
 
 Medium:
 https://medium.com/@nokkk 
 https://neurips2019exploration.ml
 
-This is an app for exploring the papers of NeuRIPS 2019. As I found that there are way too many papers and the official site did not provide any categorization, so I build this app for better exploration.
+This is an app for exploring the papers of NeuRIPS 2019. With only 1 month to go, it is impossible to read all the papers. I found that the official site is not very helpful for exploration, so I build this mini-app for better exploration.
 
 
 # Tools
@@ -17,6 +17,6 @@ This is an app for exploring the papers of NeuRIPS 2019. As I found that there a
 
 
 # Resource:
-How to build streamlit app with Heroku:
+To deploy a streamlit app with Heroku, I found this blog post is very useful for a newbie to Heroku & streamlit:
 https://towardsdatascience.com/how-to-build-your-machine-learning-app-in-3-simple-steps-d56ed910355c
 

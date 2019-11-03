@@ -1,5 +1,6 @@
 # %%
-DEBUG = True
+global DEBUG
+DEBUG = False
 
 # %%
 import requests
