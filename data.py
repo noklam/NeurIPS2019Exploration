@@ -15,7 +15,10 @@ import streamlit as st
 
 # %%
 # url = "https://nips.cc/Conferences/2019/AcceptedpostersInitial" # The site is changed :(
-url = "https://nips.cc/Conferences/2019/Schedule?type=Poster"
+# url = "https://nips.cc/Conferences/2019/Schedule?type=Poster"
+url = "https://nips.cc/Conferences/2019/Schedule"
+
+
 base_url = "https://nips.cc"
 res = requests.get(url)
 soup = BeautifulSoup(res.content, "lxml")
@@ -39,29 +42,38 @@ example = posters_soup[0]
 # %%
 def get_titles(poster):
     return poster.find(class_="maincardBody").text
-
-
 def get_authors(poster):
     return poster.find(class_="maincardFooter").text
-
-
 def get_event_type(poster):
     return poster.find_all(class_="maincardHeader")[0].text
-
-
 def get_details(poster):
     return poster.find_all(class_="maincardHeader")[1].text
-
-
 def get_category(poster):
     return poster.find_all(class_="maincardHeader")[2].text
-
 def get_href(poster):
     return base_url + poster.find("a", href=True).attrs.get('href', None)
+def get_poster(poster):
+    tag = poster.find("a",{"title":"Poster"})
+    if tag:
+        return tag.attrs.get("href", "")
+    else:
+        return ""
+def get_slides(poster):
+    tag = poster.find("a",{"title":"Slides"})
+    if tag:
+        return tag.attrs.get("href", "")
+    else:
+        return ""
+def get_video(poster):
+    tag = poster.find("a",{"title":"3 min Video"})
+    if tag:
+        return tag.attrs.get("href", "")
+    else:
+        return ""
 
 
 # %%
-fn_list = [get_titles, get_authors, get_category, get_event_type, get_details, get_href]
+fn_list = [get_titles, get_authors, get_category, get_event_type, get_details, get_href, get_poster,get_slides,get_video]
 
 for fn in fn_list:
     print(fn.__name__, ": ", fn(example))
@@ -77,7 +89,7 @@ for poster in posters_soup:
     posters_list.append(columns)
 
 # %%
-cols = ["title", "author", "category", "event_type", "time", "link"]
+cols = ["title", "author", "category", "event_type", "time", "link","poster","slides","video"]
 
 # %%
 posters = pd.DataFrame(posters_list, columns=cols)
@@ -98,6 +110,9 @@ posters["category"] = posters["category"].str.split("\n").str[-2]
 posters["sub_category"] = posters["category"].copy().str.split("--").str[-1].str.strip()
 posters["category"] = posters["category"].str.split("--").str[-2].str.strip()
 
+
+# %%
+posters.head().T
 
 # %%
 # # Output to a csv

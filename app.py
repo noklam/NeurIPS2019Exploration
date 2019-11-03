@@ -43,7 +43,7 @@ ga = """<!-- Global site tag (gtag.js) - Google Analytics -->
   gtag('config', 'UA-83544344-6');
 </script>
 """
-st.markdown(ga, unsafe_allow_html=True)
+# st.markdown(ga, unsafe_allow_html=True)
 
 
 width = 10
@@ -93,7 +93,7 @@ st.sidebar.info("A Simple search engine for NeurIPS 2019")
 # %%
 # Sidebar filter for time
 time = filter.posters["time"].unique()
-time.sort()
+# time.sort()
 time = np.insert(time, 0, "All")
 filter.time = st.sidebar.selectbox("Filter by time", time)
 
@@ -110,13 +110,13 @@ category = np.insert(category, 0, "All")
 filter.category = st.sidebar.selectbox("Filter by category", category)
 
 # Sidebar filter for category
-sub_category = filter.posters[filter.posters['category'].str.contains(filter.category)]["sub_category"].unique()
+sub_category = filter.posters[filter.posters['category'].str.lower().str.contains(filter.category)]["sub_category"].unique()
 sub_category.sort()
 sub_category = np.insert(sub_category, 0, "All")
 filter.sub_category = st.sidebar.selectbox("Filter by sub-category", sub_category)
 
 ## Sidebar for Select Top N Results
-top_n = [5, 10, 15, 20]
+top_n = [10, 10, 15, 20]
 n = st.sidebar.selectbox("Show Top N Result", top_n)
 filter.n = n
 
@@ -199,7 +199,7 @@ def run():
             if not button_sub_category:
                 del result['sub_category']
             if not button_link:
-                del result['link']
+                del result['link'], result['poster'], result['slides'], result['video']
             st.table(result)
         except:
             search_result = pd.DataFrame()
@@ -236,7 +236,7 @@ def run():
         if not button_sub_category:
             del result['sub_category']
         if not button_link:
-            del result['link']
+            del result['link'], result['poster'], result['slides'], result['video']
         st.table(result)
     else:
         st.markdown(
