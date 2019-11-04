@@ -29,6 +29,8 @@ def load_data():
         posters = pd.read_csv("posters_debug.csv")
     else:
         posters = pd.read_csv("posters.csv")
+
+    del posters['event_type']
     return posters
 
 # %%
