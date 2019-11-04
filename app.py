@@ -200,7 +200,9 @@ def run():
                 del result['sub_category']
             if not button_link:
                 del result['link'], result['poster'], result['slides'], result['video']
-            st.table(result)
+            # st.write(result.to_html(scape=False, index=False),unsafe_allow_html=True)
+            # result.to_html(scape=False, index=False)
+            st.write(result.to_html(index=False),unsafe_allow_html=True)
         except:
             search_result = pd.DataFrame()
             st.table("No search result :(")
@@ -237,7 +239,8 @@ def run():
             del result['sub_category']
         if not button_link:
             del result['link'], result['poster'], result['slides'], result['video']
-        st.table(result)
+        # st.table(result)
+        st.write(result.to_html(index=False),unsafe_allow_html=True)
     else:
         st.markdown(
             f"No matched records, try modify your search query _ {filter.search_query}_or clean up the filter"
